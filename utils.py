@@ -224,9 +224,6 @@ class Q:
         q = (part1 - part2 + part3 * part4) / (part5 + part6)
         return q
 
-    def nee(self, a, b, c, d, e, f):
-        Q = a*f - b + c / (d*f + e)
-
     @staticmethod
     def get_qb(q, xb, yb, theta):
         return q * (xb * math.sin(theta) - yb * math.cos(theta))

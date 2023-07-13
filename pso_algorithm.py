@@ -52,7 +52,7 @@ class Pso:
     def initialization(self):
         t1 = time.time()
 
-        valid_circles = CoastFunction.get_valid_circles1(self.n_pop)
+        valid_circles = CoastFunction.get_valid_circles(self.n_pop)
         child_number = 0
         while len(self.particles) < self.n_pop:
 
@@ -66,7 +66,6 @@ class Pso:
                 valid_circles[child_number][3],
                 valid_circles[child_number][4]
             ]
-            # particle.position = [random.uniform(-3, 3) for _ in range(self.var_size)]
 
             # initialize velocity
             particle.velocity = [0 for _ in range(self.var_size)]
@@ -178,13 +177,12 @@ class Particle:
 
 
 if __name__ == "__main__":
-    # f_max = random.uniform(1.51, 2.6)
-    pso = Pso(0.5, 0.5, 1.4, 1, cost, 100, 5000, 5, 5, [7, 10, 20, -5, 1.51], [12, 15, 26, 5, 1.6])
+    pso = Pso(0.5, 0.5, 1.4, 1, cost, 100, 2000, 5, 5, [7, 10, 20, -10, 1], [12, 15, 26, 10, 10])
     pso.run(constriction_coefficient=True)
     x, y, r, t, f = pso.best_pos[-1]
-    print("*" * 100)
+    print("*" * 150)
     print('fs: ', f)
-    print('∑𝑄𝑖 + ∑𝑀𝑖: ', round(pso.best_costs[-1] - f * 10, 6))
+    print('∑𝑄𝑖 + ∑𝑀𝑖: ', round(pso.best_costs[-1] - f * 100, 6))
     print("x center circle: ", x)
     print("y center circle: ", y)
     print("radius: ", r)
