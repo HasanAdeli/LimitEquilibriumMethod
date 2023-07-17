@@ -54,10 +54,12 @@ class CoastFunction:
 
 
 def cost(data):
-    x, y, r, theta, fs = data
+    # x, y, r, theta, fs = data
+    x, y, r, fs = 9, 12, 22, 1.2
+    theta = data[0]
     c = CoastFunction()
     q, qb = c.cost(x, y, r, theta, fs)
-    return abs(q) + abs(qb) + fs * 100
+    return abs(q + qb)
 
 
 if __name__ == "__main__":

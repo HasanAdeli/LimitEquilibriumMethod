@@ -32,7 +32,7 @@ class Pso:
         # --------------- Velocity limits ------------------ #
 
         # self.vel_max = 0.001 * (self.var_max[-1] - self.var_min[-1])
-        self.vel_max = 0.1
+        self.vel_max = 0.01 * abs(self.var_min[0] - self.var_max[0])
         self.vel_min = -self.vel_max
 
         # --------------- initialization  ------------------ #
@@ -52,20 +52,21 @@ class Pso:
     def initialization(self):
         t1 = time.time()
 
-        valid_circles = CoastFunction.get_valid_circles(self.n_pop)
+        # valid_circles = CoastFunction.get_valid_circles(self.n_pop)
         child_number = 0
         while len(self.particles) < self.n_pop:
 
             particle = Particle()
 
             # initialize position
-            particle.position = [
-                valid_circles[child_number][0],
-                valid_circles[child_number][1],
-                valid_circles[child_number][2],
-                valid_circles[child_number][3],
-                valid_circles[child_number][4]
-            ]
+            # particle.position = [
+            #     valid_circles[child_number][0],
+            #     valid_circles[child_number][1],
+            #     valid_circles[child_number][2],
+            #     valid_circles[child_number][3],
+            #     valid_circles[child_number][4]
+            # ]
+            particle.position = [random.uniform(self.var_min[i], self.var_max[i]) for i in range(self.n_var)]
 
             # initialize velocity
             particle.velocity = [0 for _ in range(self.var_size)]
@@ -138,10 +139,16 @@ class Pso:
             self.best_costs.append(self.global_best_cost)
             self.best_pos.append(self.global_best_position)
 
-            print("iteration", it, ": best cost =", self.best_costs[it])
-            print("iteration", it, ": best position =", self.best_pos[it])
+            print("iteration", it, ": best cost =", self.global_best_cost)
+            print("iteration", it, ": best position =", self.global_best_position[0])
+
+            # print("iteration", it, ": best cost =", self.best_costs[it])
+            # print("iteration", it, ": best position =", self.best_pos[it])
 
             self.w *= self.w_damp
+
+            if self.best_costs[it] == 0:
+                break
 
         # --------------- results --------------- #
 
