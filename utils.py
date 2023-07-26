@@ -13,19 +13,19 @@ MAX_RANGE = HEIGHT / math.tan(BETA)  # start
 HEIGHT_DIV_SLOPE = HEIGHT / SLOPE
 SIDE_SMALL_SUM_HEIGHT_DIV_SLOPE = SIDE_SMALL + HEIGHT_DIV_SLOPE  # end
 GAMMA_WET = 18
-GAMMA_WATER = 9.8
+GAMMA_WATER = 9.81
 GAMMA_SAT = 20
 
 
 # 2) Properties Materials
 class PropertiesMaterials:
-    def __init__(self, gamma_sat, gs, drained_cohesion, drained_frictio_angle, bedrock_height):
+    def __init__(self, gamma_sat, gs, drained_cohesion, drained_friction_angle, bedrock_height):
         # a = (20, 2.8, 50, 8, 25)
         self.gamma_watter = 9.81
         self.gamma_sat = gamma_sat
         self.gs = gs
         self.drained_cohesion = drained_cohesion  # c_prime
-        self.drained_frictio_angle = drained_frictio_angle  # phi_prime
+        self.drained_friction_angle = drained_friction_angle  # phi_prime
         self.bedrock_height = bedrock_height
 
         self.gamma_sat_div_gamma_watter = self.gamma_sat / self.gamma_watter
@@ -50,8 +50,8 @@ class ImportantCoordinatesCircle:
 
     def is_valid_circle(self):
         self.computing()
-        condition2 = 0 < self.intersection_horizontal_axis_and_slip_surface_right < SIDE_BIG
         condition1 = self.intersection_horizontal_axis_and_slip_surface_left < 0
+        condition2 = 0 < self.intersection_horizontal_axis_and_slip_surface_right < SIDE_BIG
         condition3 = 0.88 * MAX_RANGE < self.intersection_embankment_and_slip_surface < MAX_RANGE + SIDE_SMALL
         if condition1 and condition2 and condition3:
             return True
