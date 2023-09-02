@@ -162,8 +162,13 @@ class EndCoordinatesOfSlices:
 
     def get_y(self, x_index):
         sqr = self.icc.radius ** 2 - (x_index - self.icc.x_center_circle) ** 2
-        y1_index = math.sqrt(sqr) + self.icc.y_center_circle
-        y2_index = -math.sqrt(sqr) + self.icc.y_center_circle
+
+        try:
+            y1_index = math.sqrt(sqr) + self.icc.y_center_circle
+            y2_index = -math.sqrt(sqr) + self.icc.y_center_circle
+        except:
+            y1_index = self.icc.y_center_circle
+            y2_index = -self.icc.y_center_circle
 
         if y1_index < 0 and y2_index < 0:
             return 0
@@ -218,9 +223,9 @@ class Q:
         part1 = -force_vertical * math.sin(alpha) - force_horizontal * math.cos(alpha)
         part2 = self.pm.drained_cohesion * delta / F
         part3 = -force_vertical * math.cos(alpha) - force_horizontal * math.sin(alpha) + delta * u
-        part4 = math.tan(self.pm.drained_frictio_angle) / F
+        part4 = math.tan(self.pm.drained_friction_angle) / F
         part5 = math.cos(alpha - theta)
-        part6 = math.sin(alpha - theta) * math.tan(self.pm.drained_frictio_angle) / F
+        part6 = math.sin(alpha - theta) * math.tan(self.pm.drained_friction_angle) / F
         q = (part1 - part2 + part3 * part4) / (part5 + part6)
         return q
 
@@ -237,3 +242,13 @@ class Q:
             q_total += q
             qb_total += qb
         return q_total, qb_total
+
+    def get_fs(self):
+        fs = 1.54
+        while fs <= 10:
+            q_total, qb_total = self.total_q(0, fs)
+            # print(q_total + qb_total)
+            if -10 < q_total + qb_total < 10:
+                return fs
+            fs += 0.1
+        return fs

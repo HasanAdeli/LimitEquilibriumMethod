@@ -14,7 +14,7 @@ class CoastFunction:
         # create new circle
         icc = ImportantCoordinatesCircle(x, y, r)
         if not icc.is_valid_circle():
-            return self.q_total, self.qb_total
+            return self.q_total
 
         # Width Slices
         ws = WidthSlices(16, 22, 1, icc)
@@ -30,8 +30,10 @@ class CoastFunction:
 
         # Q equation
         q = Q(ecs, pm, hf)
-        self.q_total, self.qb_total = q.total_q(theta, f)
-        return self.q_total, self.qb_total
+        fs = q.get_fs()
+        return fs
+        # self.q_total, self.qb_total = q.total_q(theta, f)
+        # return self.q_total, self.qb_total
 
     @staticmethod
     def get_valid_circles(length):
@@ -52,6 +54,22 @@ class CoastFunction:
                 break
         return valid_circles
 
+    @staticmethod
+    def get_normal_circles(length):
+        valid_circles = []
+        for x in range(6, 13):
+            for y in range(10, 16):
+                for r in range(20, 31):
+                    if x > r or (y > r or y < 10.8):
+                        continue
+                    icc = ImportantCoordinatesCircle(x, y, r)
+                    if not icc.is_valid_circle():
+                        continue
+                    valid_circles.append([x, y, r])
+                    if len(valid_circles) == length:
+                        return valid_circles
+        return valid_circles
+
 
 def cost(data):
     # x, y, r, theta, fs = data
@@ -62,5 +80,13 @@ def cost(data):
     return abs(q + qb)
 
 
+def new_cost(data):
+    x, y, r = data
+    c = CoastFunction()
+    return c.cost(x, y, r, 0, 0)
+
+
 if __name__ == "__main__":
-    pass
+    print(new_cost([8.8706, 13.36166937, 21.10004787]))
+    valid_circles = CoastFunction.get_normal_circles(400)
+    print(len(valid_circles))
