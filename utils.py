@@ -218,14 +218,14 @@ class Q:
         self.ecs = ecs
         self.hf = hf
 
-    def get_q(self, alpha, delta, force_vertical, u, theta, F):
+    def get_q(self, alpha, delta, force_vertical, u, theta, fs):
         force_horizontal = self.hf.force_horizontal
         part1 = -force_vertical * math.sin(alpha) - force_horizontal * math.cos(alpha)
-        part2 = self.pm.drained_cohesion * delta / F
+        part2 = self.pm.drained_cohesion * delta / fs
         part3 = -force_vertical * math.cos(alpha) - force_horizontal * math.sin(alpha) + delta * u
-        part4 = math.tan(self.pm.drained_friction_angle) / F
+        part4 = math.tan(self.pm.drained_friction_angle) / fs
         part5 = math.cos(alpha - theta)
-        part6 = math.sin(alpha - theta) * math.tan(self.pm.drained_friction_angle) / F
+        part6 = math.sin(alpha - theta) * math.tan(self.pm.drained_friction_angle) / fs
         q = (part1 - part2 + part3 * part4) / (part5 + part6)
         return q
 

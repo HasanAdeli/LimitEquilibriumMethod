@@ -4,7 +4,7 @@ from math import sqrt
 import numpy as np
 import matplotlib.pyplot as plt
 
-from model import CoastFunction, new_cost
+from model import cost
 from shapes import Plot
 
 
@@ -52,23 +52,14 @@ class Pso:
     def initialization(self):
         t1 = time.time()
 
-        # valid_circles = CoastFunction.get_valid_circles(self.n_pop)
-        valid_circles = CoastFunction.get_normal_circles(self.n_pop)
         child_number = 0
         while len(self.particles) < self.n_pop:
 
             particle = Particle()
 
             # initialize position
-            # particle.position = [
-            #     valid_circles[child_number][0],
-            #     valid_circles[child_number][1],
-            #     valid_circles[child_number][2],
-            #     valid_circles[child_number][3],
-            #     valid_circles[child_number][4]
-            # ]
-            # particle.position = [random.uniform(self.var_min[i], self.var_max[i]) for i in range(self.n_var)]
-            particle.position = valid_circles[child_number]
+
+            particle.position = [random.uniform(self.var_min[i], self.var_max[i]) for i in range(self.n_var)]
 
             # initialize velocity
             particle.velocity = [0 for _ in range(self.var_size)]
@@ -186,12 +177,11 @@ class Particle:
 
 
 if __name__ == "__main__":
-    pso = Pso(0.5, 0.5, 1.4, 1, new_cost, 265, 30, 3, 3, [7, 10, 20], [12, 15, 26])
+    pso = Pso(0.9, 0.9, 1.4, 0.99, cost, 100, 350, 4, 4, [7, 10, 20, -10], [12, 15, 30, 10])
     pso.run(constriction_coefficient=True)
-    x, y, r = pso.best_pos[-1]
+    x, y, r, theta = pso.best_pos[-1]
     print("*" * 150)
-    print('fs: ', pso.best_costs[-1])
-    # print('∑𝑄𝑖 + ∑𝑀𝑖: ', round(pso.best_costs[-1] - f * 100, 6))
+    print('∑𝑄𝑖 + ∑𝑀𝑖: ', pso.best_costs[-1])
     print("x center circle: ", x)
     print("y center circle: ", y)
     print("radius: ", r)
