@@ -2,19 +2,22 @@ import math
 
 
 # 1) Characteristics Of SlopeGeometry Attribute
-HEIGHT = 12
-WATER_HEIGHT_LEFT = 10
-WATER_HEIGHT_RIGHT = 4
-SLOPE = 1 / 2.6
-SIDE_SMALL = 0.2 * HEIGHT + 3
-SIDE_BIG = SIDE_SMALL + ((2 * HEIGHT) / SLOPE)
-BETA = math.atan(SLOPE)
-MAX_RANGE = HEIGHT / math.tan(BETA)  # start
-HEIGHT_DIV_SLOPE = HEIGHT / SLOPE
-SIDE_SMALL_SUM_HEIGHT_DIV_SLOPE = SIDE_SMALL + HEIGHT_DIV_SLOPE  # end
-GAMMA_WET = 18
-GAMMA_WATER = 9.81
-GAMMA_SAT = 20
+class SlopeGeometryAttribute:
+    GAMMA_WET = 18
+    GAMMA_WATER = 9.81
+    GAMMA_SAT = 20
+
+    def __init__(self, height, slope, water_height_left, water_height_right):
+        self.height = height
+        self.slope = slope
+        self.water_height_left = water_height_left
+        self.water_height_right = water_height_right
+        self.side_small = 0.2 * height + 3
+        self.side_big = self.side_small + ((2 * height) / slope)
+        self.beta = math.atan(slope)
+        self.max_range = height / math.tan(self.beta)  # start
+        self.height_div_slope = height / slope
+        self.side_small_sum_height_div_slope = self.side_small + self.height_div_slope  # end
 
 
 # 2) Properties Materials
@@ -32,36 +35,60 @@ class PropertiesMaterials:
 
 
 class ImportantCoordinatesCircle:
-    def __init__(self, x_center_circle, y_center_circle, radius):
+    def __init__(self, x_center_circle, y_center_circle, radius, sga):
         self.x_center_circle = x_center_circle
         self.y_center_circle = y_center_circle
         self.radius = radius
+        self.sga = sga
         self.intersection_horizontal_axis_and_slip_surface_left = 0
         self.intersection_horizontal_axis_and_slip_surface_right = 0
         self.intersection_embankment_and_slip_surface = 0
+        self.error = False
 
     def computing(self):
         intersection_horizontal = math.sqrt(self.radius ** 2 - self.y_center_circle ** 2)
         self.intersection_horizontal_axis_and_slip_surface_left = -intersection_horizontal + self.x_center_circle
         self.intersection_horizontal_axis_and_slip_surface_right = intersection_horizontal + self.x_center_circle
 
-        intersection_embankment_and_slip_surface = math.sqrt(self.radius ** 2 - ((0.9 * HEIGHT - self.y_center_circle) ** 2))
+        intersection_embankment_and_slip_surface = math.sqrt(self.radius ** 2 - ((0.9 * self.sga.height - self.y_center_circle) ** 2))
         self.intersection_embankment_and_slip_surface = intersection_embankment_and_slip_surface + self.x_center_circle
 
     def is_valid_circle(self):
-        self.computing()
+        try:
+            self.computing()
+        except Exception as err:
+            self.error = err
+            return False
         condition1 = self.intersection_horizontal_axis_and_slip_surface_left < 0
-        condition2 = 0 < self.intersection_horizontal_axis_and_slip_surface_right < SIDE_BIG
-        condition3 = 0.88 * MAX_RANGE < self.intersection_embankment_and_slip_surface < MAX_RANGE + SIDE_SMALL
+        condition2 = 0 < self.intersection_horizontal_axis_and_slip_surface_right < self.sga.side_big
+        condition3 = 0.88 * self.sga.max_range < self.intersection_embankment_and_slip_surface < self.sga.max_range + self.sga.side_small
         if condition1 and condition2 and condition3:
             return True
         return False
 
+    def penalty_amount(self):
+        if self.error:
+            return 100000, 0
+        amount = 1
+        penalty = 100
+        if self.intersection_horizontal_axis_and_slip_surface_left >= 0:
+            amount *= (1 + self.intersection_horizontal_axis_and_slip_surface_left) * penalty
+        if self.intersection_horizontal_axis_and_slip_surface_right <= 0:
+            amount *= (1 + self.intersection_horizontal_axis_and_slip_surface_right) * penalty
+        if self.intersection_horizontal_axis_and_slip_surface_right > self.sga.side_big:
+            amount *= (1 + abs(self.intersection_horizontal_axis_and_slip_surface_right / self.sga.side_big)) * penalty
+        if self.intersection_embankment_and_slip_surface <= 0.88 * self.sga.max_range:
+            amount *= (1 + abs(self.intersection_embankment_and_slip_surface / 0.88 * self.sga.max_range)) * penalty * 100
+        if self.intersection_embankment_and_slip_surface >= self.sga.max_range + self.sga.side_small:
+            amount *= (1 + abs(self.intersection_embankment_and_slip_surface / self.sga.max_range + self.sga.side_small)) * penalty * 100
+        return amount, 0
+
 
 # 5.1) Width Slices
 class WidthSlices:
-    def __init__(self, number_slices_first_piece, number_slices_second_piece, number_slices_third_piece, icc):
+    def __init__(self, number_slices_first_piece, number_slices_second_piece, number_slices_third_piece, icc, sga):
         self.icc = icc
+        self.sga = sga
         self.number_slices_first_piece = number_slices_first_piece
         self.number_slices_second_piece = number_slices_second_piece
         self.number_slices_third_piece = number_slices_third_piece
@@ -70,7 +97,7 @@ class WidthSlices:
 
     def __computing(self):
         numerator_first_piece = 0 - self.icc.intersection_horizontal_axis_and_slip_surface_left
-        numerator_second_piece = HEIGHT / math.tan(BETA) * 0.88
+        numerator_second_piece = self.sga.height / math.tan(self.sga.beta) * 0.88
         numerator_third_piece = self.icc.intersection_embankment_and_slip_surface - numerator_second_piece
 
         self.width_first_piece = numerator_first_piece / self.number_slices_first_piece
@@ -93,7 +120,7 @@ class PoreWaterPressure:
 
 
 class EndCoordinatesOfSlices:
-    def __init__(self, icc, ws, pwp):
+    def __init__(self, icc, ws, pwp, sga):
         self.x_indexes = [0]
         self.y_indexes = [0]
         self.y2_indexes = [0]
@@ -103,6 +130,7 @@ class EndCoordinatesOfSlices:
         self.icc = icc
         self.ws = ws
         self.pwp = pwp
+        self.sga = sga
         self.__computing()
 
     def __computing(self):
@@ -120,13 +148,13 @@ class EndCoordinatesOfSlices:
                 alpha_index = math.atan((y_index - self.y_indexes[-1]) / (x_index - self.x_indexes[-1]))
 
                 delta_index = self.ws.width_first_piece / math.cos(alpha_index)
-                force_vertical = GAMMA_WET * area_index
+                force_vertical = self.sga.GAMMA_WET * area_index
 
-            elif 0 <= x_index < MAX_RANGE * 0.88:
+            elif 0 <= x_index < self.sga.max_range * 0.88:
                 x_index = x_index + self.ws.width_second_piece
                 xb_index = (self.ws.number_slices_second_piece - 1) * self.ws.width_second_piece + self.ws.width_second_piece / 2
 
-                y12_index = SLOPE * x_index
+                y12_index = self.sga.slope * x_index
                 y_index = self.get_y(x_index)
                 yb_index = self.get_y(xb_index)
 
@@ -135,14 +163,14 @@ class EndCoordinatesOfSlices:
                 alpha_index = math.atan((y_index - self.y_indexes[-1]) / (x_index - self.x_indexes[-1]))
 
                 delta_index = self.ws.width_first_piece / math.cos(alpha_index)
-                force_vertical = GAMMA_WET * area_index
+                force_vertical = self.sga.GAMMA_WET * area_index
                 self.y2_indexes.append(y12_index)
 
-            elif x_index >= MAX_RANGE * 0.88:
+            elif x_index >= self.sga.max_range * 0.88:
                 x_index = x_index + self.ws.width_third_piece
                 xb_index = (self.ws.number_slices_third_piece - 1) * self.ws.width_third_piece + self.ws.width_third_piece / 2
 
-                y12_index = SLOPE * x_index
+                y12_index = self.sga.slope * x_index
                 y_index = self.get_y(x_index)
                 yb_index = self.get_y(xb_index)
 
@@ -151,11 +179,11 @@ class EndCoordinatesOfSlices:
                 alpha_index = math.atan((y_index - self.y_indexes[-1]) / (x_index - self.x_indexes[-1]))
 
                 delta_index = self.ws.width_first_piece / math.cos(alpha_index)
-                force_vertical = GAMMA_WET * area_index
+                force_vertical = self.sga.GAMMA_WET * area_index
                 self.y3_indexes.append(y12_index)
 
             u = self.get_pwp(x_index, y_index)
-            self.weight += GAMMA_SAT * area_index
+            self.weight += self.sga.GAMMA_SAT * area_index
             self.x_indexes.append(x_index)
             self.y_indexes.append(y_index)
             self.results.append((alpha_index, delta_index, force_vertical, xb_index, yb_index, u))
@@ -181,15 +209,15 @@ class EndCoordinatesOfSlices:
 
     def get_pwp(self, x_index, y_index):
         h_index = 0
-        self.pwp.yw3 = self.pwp.hg * (x_index - self.pwp.hwl / SLOPE)
-        if x_index <= self.pwp.hwl / SLOPE:
+        self.pwp.yw3 = self.pwp.hg * (x_index - self.pwp.hwl / self.sga.slope)
+        if x_index <= self.pwp.hwl / self.sga.slope:
             h_index = self.pwp.hwl + (abs(self.y_indexes[-1]) + abs(y_index)) / 2
-        elif self.pwp.hwl / SLOPE < x_index < self.icc.intersection_horizontal_axis_and_slip_surface_right:
+        elif self.pwp.hwl / self.sga.slope < x_index < self.icc.intersection_horizontal_axis_and_slip_surface_right:
             h_index = self.pwp.yw3 + (abs(self.y_indexes[-1]) + abs(y_index)) / 2
         elif self.icc.intersection_horizontal_axis_and_slip_surface_right < x_index <= self.icc.intersection_embankment_and_slip_surface + 0.001:
             h_index = self.pwp.yw3 - (abs(self.y_indexes[-1]) + abs(y_index)) / 2
 
-        pwp_index = abs(h_index) * GAMMA_WATER
+        pwp_index = abs(h_index) * self.sga.GAMMA_WATER
         return pwp_index
 
 

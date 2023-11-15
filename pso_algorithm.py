@@ -4,13 +4,12 @@ from math import sqrt
 import numpy as np
 import matplotlib.pyplot as plt
 
-from model import cost
 from shapes import Plot
 
 
 class Pso:
 
-    def __init__(self, c1, c2, w, w_damp, func, n_pop, max_iter, n_var, var_size, var_min, var_max):
+    def __init__(self, c1, c2, w, w_damp, func, func_data, n_pop, max_iter, n_var, var_size, var_min, var_max):
 
         # --------------- PSO Parameter ------------------- #
 
@@ -24,6 +23,7 @@ class Pso:
         # --------------- problem definition --------------- #
 
         self.func = func             # cost function
+        self.func_data = func_data   # cost function static data
         self.n_var = n_var           # number of decision variables
         self.var_size = var_size     # size of decision variables matrix
         self.var_min = var_min       # lower bound of variables
@@ -65,7 +65,7 @@ class Pso:
             particle.velocity = [0 for _ in range(self.var_size)]
 
             # update particle cost function
-            particle.cost = self.func(particle.position)
+            particle.cost = self.func(particle.position, self.func_data)
 
             # update personal best
             particle.best_position = particle.position
@@ -73,9 +73,9 @@ class Pso:
 
             # create particle i-th
             self.particles.append(particle)
-            print(f"child {child_number + 1} added")
-            print(f"new child position: ", particle.position)
-            print(f"new child cost: ", particle.cost)
+            # # print(f"child {child_number + 1} added")
+            # # print(f"new child position: ", particle.position)
+            # # print(f"new child cost: ", particle.cost)
             child_number += 1
 
             # update global best
@@ -83,11 +83,11 @@ class Pso:
                 self.global_best_cost = particle.best_cost
                 self.global_best_position = particle.best_position
 
-        print("********** result of particle generation **********")
-        print("global best cost", self.global_best_cost)
-        print("global best pos", self.global_best_position)
+        # print("********** result of particle generation **********")
+        # print("global best cost", self.global_best_cost)
+        # print("global best pos", self.global_best_position)
         t2 = time.time()
-        print("particle generation time: ", round(t2 - t1, 4), "(s)" + "\n")
+        # print("particle generation time: ", round(t2 - t1, 4), "(s)" + "\n")
 
     def main_loop(self):
         t1 = time.time()
@@ -115,7 +115,7 @@ class Pso:
                 particle.position = np.array([min(particle.position[i], self.var_max[i]) for i in range(len(particle.position))])
 
                 # Evaluation
-                particle.cost = self.func(particle.position)
+                particle.cost = self.func(particle.position, self.func_data)
 
                 # update personal best
                 if particle.cost < particle.best_cost:
@@ -126,17 +126,14 @@ class Pso:
                     if particle.best_cost < self.global_best_cost:
                         self.global_best_cost = particle.best_cost
                         self.global_best_position = particle.best_position
-                        print("global_best_cost: ", self.global_best_cost)
-                        print("global_best_position: ", self.global_best_position)
+                        # print("global_best_cost: ", self.global_best_cost)
+                        # print("global_best_position: ", self.global_best_position)
 
             self.best_costs.append(self.global_best_cost)
             self.best_pos.append(self.global_best_position)
 
-            print("iteration", it, ": best cost =", self.global_best_cost)
-            print("iteration", it, ": best position =", self.global_best_position)
-
-            # print("iteration", it, ": best cost =", self.best_costs[it])
-            # print("iteration", it, ": best position =", self.best_pos[it])
+            # print("iteration", it, ": best cost =", self.global_best_cost)
+            # print("iteration", it, ": best position =", self.global_best_position)
 
             self.w *= self.w_damp
 
@@ -146,11 +143,11 @@ class Pso:
         # --------------- results --------------- #
 
         t2 = time.time()
-        print("Total time of algorithm calculation is:", round(t2 - t1, 4), "(s)")
-        plt.plot(self.best_costs)
-        plt.xlabel('Iteration')
-        plt.ylabel('Best Cost')
-        plt.show()
+        # print("Total time of algorithm calculation is:", round(t2 - t1, 4), "(s)")
+        # plt.plot(self.best_costs)
+        # plt.xlabel('Iteration')
+        # plt.ylabel('Best Cost')
+        # plt.show()
 
     def run(self, constriction_coefficient=False):
         self.initialization()
@@ -177,7 +174,10 @@ class Particle:
 
 
 if __name__ == "__main__":
-    pso = Pso(0.9, 0.9, 1.4, 0.99, cost, 100, 350, 4, 4, [7, 10, 20, -10], [12, 15, 30, 10])
+    height, slope, water_height_left, water_height_right = 12, 1/2.6, 10, 4
+    static_data = (height, slope, water_height_left, water_height_right)
+    cost = ''
+    pso = Pso(0.9, 0.9, 1.4, 0.99, cost, static_data, 40, 100, 4, 4, [7, 10, 20, -10], [12, 15, 30, 10])
     pso.run(constriction_coefficient=True)
     x, y, r, theta = pso.best_pos[-1]
     print("*" * 150)

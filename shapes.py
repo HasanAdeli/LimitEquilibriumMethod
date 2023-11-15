@@ -88,11 +88,11 @@ class Trapezoid:
 
 class Plot:
     @staticmethod
-    def plot(x, y, r):
+    def plot(x, y, r, height, slope):
         cir = Circle(x, y, r)
         x1, c1 = cir.create()
         x11, c11 = cir.cut()
-        tra = Trapezoid(12, 1 / 2.6)
+        tra = Trapezoid(height, slope)
         x2, y2 = tra.create()
         plt.fill_between(x2, y2)
         plt.plot(x1, c1, 'r', linewidth=0.4)
