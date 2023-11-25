@@ -1,4 +1,6 @@
 __pycache__/
 .idea/
-*.pdf
 old_code/
+matlab_code/
+*.pdf
+new_method.py

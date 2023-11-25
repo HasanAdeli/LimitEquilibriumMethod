@@ -220,7 +220,7 @@ def cost_function(inputs):
 
 
 if __name__ == '__main__':
-    pso = Pso(1, 1, 1, 1, cost_function, 100, 200, 8, 8, 0.1, 10)
+    pso = Pso(1, 1, 1, 1, cost_function, 100, 20, 8, 8, 0.1, 10)
     pso.run(constriction_coefficient=True)
     print(pso.best_pos[-1])
 

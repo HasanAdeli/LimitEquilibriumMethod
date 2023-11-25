@@ -73,9 +73,9 @@ class Pso:
 
             # create particle i-th
             self.particles.append(particle)
-            # # print(f"child {child_number + 1} added")
-            # # print(f"new child position: ", particle.position)
-            # # print(f"new child cost: ", particle.cost)
+            print(f"child {child_number + 1} added")
+            print(f"new child position: ", particle.position)
+            print(f"new child cost: ", particle.cost)
             child_number += 1
 
             # update global best
@@ -84,8 +84,8 @@ class Pso:
                 self.global_best_position = particle.best_position
 
         # print("********** result of particle generation **********")
-        # print("global best cost", self.global_best_cost)
-        # print("global best pos", self.global_best_position)
+        print("global best cost", self.global_best_cost)
+        print("global best pos", self.global_best_position)
         t2 = time.time()
         # print("particle generation time: ", round(t2 - t1, 4), "(s)" + "\n")
 
@@ -126,14 +126,14 @@ class Pso:
                     if particle.best_cost < self.global_best_cost:
                         self.global_best_cost = particle.best_cost
                         self.global_best_position = particle.best_position
-                        # print("global_best_cost: ", self.global_best_cost)
-                        # print("global_best_position: ", self.global_best_position)
+                        print("global_best_cost: ", self.global_best_cost)
+                        print("global_best_position: ", self.global_best_position)
 
             self.best_costs.append(self.global_best_cost)
             self.best_pos.append(self.global_best_position)
 
-            # print("iteration", it, ": best cost =", self.global_best_cost)
-            # print("iteration", it, ": best position =", self.global_best_position)
+            print("iteration", it, ": best cost =", self.global_best_cost)
+            print("iteration", it, ": best position =", self.global_best_position)
 
             self.w *= self.w_damp
 
@@ -143,7 +143,7 @@ class Pso:
         # --------------- results --------------- #
 
         t2 = time.time()
-        # print("Total time of algorithm calculation is:", round(t2 - t1, 4), "(s)")
+        print("Total time of algorithm calculation is:", round(t2 - t1, 4), "(s)")
         # plt.plot(self.best_costs)
         # plt.xlabel('Iteration')
         # plt.ylabel('Best Cost')
